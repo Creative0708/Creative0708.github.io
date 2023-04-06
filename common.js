@@ -2,6 +2,8 @@
 
 (function (){
     let mainEl = document.createElement("main");
+    let textareasEl = document.createElement("div");
+    textareasEl.className = "textareas";
 
     let formatEl;
 
@@ -46,10 +48,14 @@
         }
     }
     function finishCommon(version){
+        mainEl.appendChild(textareasEl);
+
         const footerEl = document.createElement("footer");
         footerEl.append("Made by Creative0708#1593.");
         footerEl.appendChild(document.createElement("br"));
         footerEl.append("Version " + version);
+
+        mainEl.appendChild(footerEl);
 
         document.body.appendChild(mainEl);
     }
@@ -61,7 +67,7 @@
             mainEl.appendChild(createFormat(formatOptions));
         }
         for(const [id, options] of Object.entries(textareaOptions)){
-            mainEl.appendChild(createTextarea(id, options));
+            textareasEl.appendChild(createTextarea(id, options));
         }
 
         for(const [id, options] of Object.entries(textareaOptions)){
