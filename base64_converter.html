@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!-- Made by Creative0708#1593 -->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <script src="common.js"></script>
+        <script>
+            setupTranslator("Base64 Converter", "1.0", "Type in either text area. It will be converted either way.", {
+                "plaintext": {
+                    desc: "Text to be converted goes here.",
+                    listenId: "base64",
+                    listener: atob,
+                    errorMappings: {
+                        InvalidCharacterError: "Invalid base64-encoded string"
+                    },
+                },
+                "base64": {
+                    desc: "Converted code goes here.",
+                    listenId: "plaintext",
+                    listener: btoa,
+                },
+            });
+        </script>
+    </body>
+</html>

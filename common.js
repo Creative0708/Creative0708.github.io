@@ -44,7 +44,7 @@
         if(desc){
             const descEl = document.createElement("h2");
             descEl.textContent = desc;
-            mainEl.appendChild(desc);
+            mainEl.appendChild(descEl);
         }
     }
     function finishCommon(version){
@@ -79,11 +79,19 @@
                 const listenedTextareas = options.listenIds ?
                     options.listenIds.map((id) => textareas[id]) :
                     [textareas[options.listenId]];
+                const errorMappings = options.errorMappings;
+
                 function update(){
                     const args = listenedTextareas.map((el) => el.value);
                     if(formatEl)
                         args.push(formatEl.value)
-                    currTextarea.textContent = options.listener.apply(undefined, args);
+                    let value;
+                    try{
+                        value = options.listener.apply(undefined, args)
+                    }catch(e){
+                        value = "Error: " + (errorMappings && errorMappings[e.name] ? errorMappings[e.name] : e);
+                    }
+                    currTextarea.value = value;
                 }
                 currTextarea._updateFunc = update;
                 for(const textarea of listenedTextareas){
@@ -94,8 +102,10 @@
 
         for(const textareaId in textareas){
             const currTextarea = textareas[textareaId];
-            if(currTextarea._updateFunc)
+            if(currTextarea._updateFunc){
                 currTextarea._updateFunc();
+                delete currTextarea._updateFunc;
+            }
         }
 
         finishCommon(version);

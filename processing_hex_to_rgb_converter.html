@@ -13,6 +13,12 @@
     <body>
         <script src="common.js"></script>
         <script>
+            function color(hex){
+                const r = parseInt(hex.substr(1, 2), 16),
+                      g = parseInt(hex.substr(3, 2), 16), 
+                      b = parseInt(hex.substr(5, 2), 16);
+                return `${r}, ${g}, ${b}`;
+            }
             setupTranslator("Processing Hex to RGB Converter", "1.0", undefined, {
                 "input": {
                     desc: "Processing code goes here.",
@@ -21,15 +27,7 @@
                     desc: "Converted code goes here.",
                     readonly: true,
                     listenId: "input",
-                    listener: (str) => {
-                        function color(hex){
-                            const r = parseInt(hex.substr(1, 2), 16),
-                                  g = parseInt(hex.substr(3, 2), 16), 
-                                  b = parseInt(hex.substr(5, 2), 16);
-                            return `${r}, ${g}, ${b}`;
-                        }
-                        return str.replace(/#[0-9a-f]{6}\b/gi, color);
-                    }
+                    listener: (str) => str.replace(/#[0-9a-f]{6}\b/gi, color),
                 },
             });
         </script>
