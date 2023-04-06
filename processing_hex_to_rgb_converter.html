@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!-- Made by Creative0708#1593 -->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="style.css">
+        <style>
+            textarea{
+                font-family: monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <script src="common.js"></script>
+        <script>
+            setupTranslator("Processing Hex to RGB Converter", "1.0", undefined, {
+                "input": {
+                    desc: "Processing code goes here.",
+                },
+                "output": {
+                    desc: "Converted code goes here.",
+                    readonly: true,
+                    listenId: "input",
+                    listener: (str) => {
+                        function color(hex){
+                            const r = parseInt(hex.substr(1, 2), 16),
+                                  g = parseInt(hex.substr(3, 2), 16), 
+                                  b = parseInt(hex.substr(5, 2), 16);
+                            return `${r}, ${g}, ${b}`;
+                        }
+                        return str.replace(/#[0-9a-f]{6}\b/gi, color);
+                    }
+                },
+            });
+        </script>
+    </body>
+</html>
