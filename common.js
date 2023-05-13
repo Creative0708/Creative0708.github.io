@@ -2,27 +2,57 @@
 
 (function (){
     let mainEl = document.createElement("main");
-    let textareasEl = document.createElement("div");
-    textareasEl.className = "textareas";
+    let inputsEl = document.createElement("div");
+    inputsEl.className = "inputs";
 
     let formatEl;
 
-    let textareas = {};
+    let inputs = {};
+    let formulaGroups = {};
 
-    function createTextarea(id, options){
-        const textarea = document.createElement("textarea");
-        textarea.rows = 16;
-        textarea.cols = 64;
+    function createInput(id, options){
+        const type = options.type ?? "textarea";
 
-        textarea.id = id;
-        textarea.placeholder = options.desc;
+        const wrapperEl = document.createElement("div");
+        wrapperEl.className = "input-wrapper";
+
+        const inputEl = document.createElement(
+            type == "textarea" ? "textarea" :
+            type == "html" ? "div" :
+            "input");
+
+        inputEl.id = id;
+        inputEl.placeholder = options.desc;
+
+        // special options for different types
+        switch(type){
+            case "textarea":
+                inputEl.rows = 16;
+                inputEl.cols = 64;
+                break;
+            case "number":
+                inputEl.type = "number";
+                break;
+            case "html":
+                wrapperEl.className = "input-wrapper output-html";
+                break;
+        }
 
         if(options.readonly)
-            textarea.readOnly = true;
+            inputEl.readOnly = true;
 
-        textareas[id] = textarea;
+        inputs[id] = inputEl;
 
-        return textarea;
+        wrapperEl.appendChild(inputEl);
+
+        if(options.unit){
+            const unitEl = document.createElement("span");
+            unitEl.className = "unit";
+            unitEl.textContent = options.unit;
+            wrapperEl.appendChild(unitEl);
+        }
+
+        return wrapperEl;
     }
     function createFormat(options){
         formatEl = document.createElement("select");
@@ -48,7 +78,7 @@
         }
     }
     function finishCommon(version){
-        mainEl.appendChild(textareasEl);
+        mainEl.appendChild(inputsEl);
 
         const footerEl = document.createElement("footer");
         footerEl.append("Made by Creative0708#1593.");
@@ -60,54 +90,117 @@
         document.body.appendChild(mainEl);
     }
 
-    window.setupTranslator = function(title, version, desc, textareaOptions, formatOptions){
+    window.setupTranslator = function(title, version, desc, inputOptions, formatOptions){
         setupCommon(title, desc);
 
         if(formatOptions){
             mainEl.appendChild(createFormat(formatOptions));
         }
-        for(const [id, options] of Object.entries(textareaOptions)){
-            textareasEl.appendChild(createTextarea(id, options));
+        for(const [id, options] of Object.entries(inputOptions)){
+            inputsEl.appendChild(createInput(id, options));
         }
 
-        for(const [id, options] of Object.entries(textareaOptions)){
-            if(options.listener){
-                const currTextarea = textareas[id];
-                if(options.style)
-                    Object.assign(currTextarea.style, options.style);
-                
-                const listenedTextareas = options.listenIds ?
-                    options.listenIds.map((id) => textareas[id]) :
-                    [textareas[options.listenId]];
-                const errorMappings = options.errorMappings;
+        for(const [id, options] of Object.entries(inputOptions)){
+            if(!options.listener)
+                continue;
 
-                function update(){
-                    const args = listenedTextareas.map((el) => el.value);
-                    if(formatEl)
-                        args.push(formatEl.value)
-                    let value;
-                    try{
-                        value = options.listener.apply(undefined, args)
-                    }catch(e){
-                        value = "Error: " + (errorMappings && errorMappings[e.name] ? errorMappings[e.name] : e);
+            const currInput = inputs[id];
+            if(options.style)
+                Object.assign(currInput.style, options.style);
+            
+            const formulaGroup = options.formulaGroup;
+
+            if(!formulaGroups[formulaGroup]){
+                formulaGroups[formulaGroup] = {
+                    inputs: [],
+                    selected: undefined
+                };
+            }
+
+            formulaGroups[formulaGroup].inputs.push(currInput);
+
+            const listenedInputs = options.listenIds ?
+                options.listenIds.map((id) => inputs[id]) :
+                options.listenId ?
+                [inputs[options.listenId]] :
+                [];
+            const errorMappings = options.errorMappings;
+
+            function update(){
+                if(formulaGroup && formulaGroups[formulaGroup].selected != id)
+                    return;
+
+                const args = listenedInputs.map((el) => 
+                    inputOptions[el.id].type == "number" ?
+                    parseFloat(el.value || "0") :
+                    el.value);
+                
+                if(formatEl)
+                    args.push(formatEl.value)
+                let value;
+                try{
+                    value = options.listener.apply(undefined, args)
+                    if(Number.isNaN(value)){
+                        value = "Error: Invalid inputs";
                     }
-                    currTextarea.value = value;
+                }catch(e){
+                    value = "Error: " + (errorMappings && errorMappings[e.name] ? errorMappings[e.name] : e);
                 }
-                currTextarea._updateFunc = update;
-                for(const textarea of listenedTextareas){
-                    textarea.addEventListener("input", update);
+                if(options.type == "html")
+                    currInput.innerHTML = value;
+                else
+                    currInput.value = value;
+            }
+            currInput._updateFunc = update;
+            for(const input of listenedInputs){
+                input.addEventListener("input", update);
+                if(inputOptions[input.id].formulaGroup)
+                    input.addEventListener("dblclick", update);
+            }
+
+            if(formulaGroup){
+                function setSelected(){
+                    const prevSelected = formulaGroups[formulaGroup].selected;
+                    if(prevSelected){
+                        if(prevSelected == id)
+                            return;
+                        const prevInput = inputs[prevSelected];
+                        prevInput.className = undefined;
+                        prevInput.readOnly = false;
+                        if(inputOptions[prevInput.id].type == "number")
+                            prevInput.type = "number";
+                    }
+                    formulaGroups[formulaGroup].selected = id;
+
+                    currInput.className = "formula-selected";
+                    currInput.readOnly = true;
+                    if(options.type == "number")
+                        currInput.type = "text";
+                    
+                    update();
                 }
+                currInput.addEventListener("dblclick", setSelected);
+                setSelected();
             }
         }
 
-        for(const textareaId in textareas){
-            const currTextarea = textareas[textareaId];
-            if(currTextarea._updateFunc){
-                currTextarea._updateFunc();
-                delete currTextarea._updateFunc;
+        for(const inputId in inputs){
+            const currInput = inputs[inputId];
+            if(currInput._updateFunc){
+                currInput._updateFunc();
+                delete currInput._updateFunc;
             }
         }
 
         finishCommon(version);
     };
+
+    // utility functions
+    window.formatNumber = function(number, precision=10){
+        const str = number.toString();
+        if(!str.includes('.'))
+            return str;
+        return str.substring(0, Math.max(a.indexOf('.'), precision))
+    };
+
 })();

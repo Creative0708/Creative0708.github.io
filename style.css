@@ -8,12 +8,14 @@ body{
 
 h1{
     font-size: 30px;
-    font-weight: unset;
-    margin: 0 0 15px 0;
 }
 
 h2{
     font-size: 20px;
+    color: #666;
+}
+
+h1, h2{
     font-weight: unset;
     margin: 0 0 15px 0;
 }
@@ -22,12 +24,34 @@ p {
     margin: 0;
 }
 
-textarea{
+textarea:read-only, input:read-only{
+    color: #666;
+    caret-color: transparent;
+}
+
+.inputs{
+    margin: 25px 0;
+}
+
+.input-wrapper{
+    display: inline-block;
     margin-right: 20px;
 }
 
-.textareas{
-    margin: 25px 0;
+.formula-selected{
+    outline: 2px solid red;
+    outline-offset: -1px;
+}
+
+.unit{
+    font-size: 15px;
+    margin-left: 10px;
+    vertical-align: -1px;
+}
+
+.output-html{
+    display: block;
+    margin-top: 20px;
 }
 
 footer{
